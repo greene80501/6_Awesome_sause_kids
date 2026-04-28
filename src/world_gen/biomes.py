@@ -1,0 +1,163 @@
+# src/world_gen/biomes.py
+# All biome parameters used by the world generator.
+
+from settings import TILE_SIZE
+
+BIOMES = {
+    "plains": {
+        "display": "Plains",
+        "floor_tile": "plains",
+        "wall_tile":  "plains",
+        "bg_color": (55, 85, 40),
+        "obstacle_density": 0.06,   # fraction of tiles that are blocking objects
+        "scatter_objects": ["tree_small", "rock_small", "bush"],
+        "animal_budget": 15,
+        "threat_budget_mult": 0.7,
+        "food_density": "high",
+        "loot_density": "low",
+        "danger": "Low",
+        "open": True,   # few corridors, wide open
+        "hint": "Safe foraging grounds. Good for recovery.",
+    },
+    "forest": {
+        "display": "Forest",
+        "floor_tile": "forest",
+        "wall_tile":  "forest",
+        "bg_color": (30, 60, 25),
+        "obstacle_density": 0.18,
+        "scatter_objects": ["tree_large", "tree_med", "bush", "log"],
+        "animal_budget": 5,
+        "threat_budget_mult": 1.0,
+        "food_density": "medium",
+        "loot_density": "medium",
+        "danger": "Medium",
+        "open": False,
+        "hint": "Dense trees limit sight. Ambushes are common.",
+    },
+    "desert": {
+        "display": "Desert",
+        "floor_tile": "desert",
+        "wall_tile":  "desert",
+        "bg_color": (160, 140, 80),
+        "obstacle_density": 0.04,
+        "scatter_objects": ["cactus", "rock_large", "rock_small"],
+        "animal_budget": 2,
+        "threat_budget_mult": 0.9,
+        "food_density": "low",
+        "loot_density": "medium",
+        "danger": "Medium",
+        "open": True,
+        "hint": "Scarce resources. Plan carefully.",
+    },
+    "caves": {
+        "display": "Caves",
+        "floor_tile": "caves",
+        "wall_tile":  "caves",
+        "bg_color": (20, 18, 16),
+        "obstacle_density": 0.30,
+        "scatter_objects": ["stalagmite", "rock_large", "rock_med"],
+        "animal_budget": 0,
+        "threat_budget_mult": 1.3,
+        "food_density": "low",
+        "loot_density": "high",
+        "danger": "High",
+        "open": False,
+        "hint": "Tight corridors. Fighting is unavoidable.",
+    },
+    "hellscape": {
+        "display": "Hellscape",
+        "floor_tile": "hellscape",
+        "wall_tile":  "hellscape",
+        "bg_color": (55, 18, 8),
+        "obstacle_density": 0.20,
+        "scatter_objects": ["fire_rock", "skull_pile", "lava_crack"],
+        "animal_budget": 0,
+        "threat_budget_mult": 1.6,
+        "food_density": "none",
+        "loot_density": "high",
+        "danger": "Very High",
+        "open": False,
+        "hint": "Extremely hostile. Top gear required.",
+    },
+    "frozen": {
+        "display": "Frozen Land",
+        "floor_tile": "frozen",
+        "wall_tile":  "frozen",
+        "bg_color": (140, 165, 195),
+        "obstacle_density": 0.10,
+        "scatter_objects": ["ice_rock", "snow_drift", "frozen_tree"],
+        "animal_budget": 3,
+        "threat_budget_mult": 1.2,
+        "food_density": "low",
+        "loot_density": "medium",
+        "danger": "High",
+        "open": True,
+        "hint": "Sparse and punishing. Mistakes cost positioning.",
+    },
+    "cloud": {
+        "display": "Cloud Land",
+        "floor_tile": "cloud",
+        "wall_tile":  "cloud",
+        "bg_color": (170, 190, 220),
+        "obstacle_density": 0.12,
+        "scatter_objects": ["cloud_puff", "wind_crystal"],
+        "animal_budget": 2,
+        "threat_budget_mult": 1.1,
+        "food_density": "low",
+        "loot_density": "medium",
+        "danger": "Medium-High",
+        "open": False,
+        "hint": "Islands connected by narrow paths. Route matters.",
+    },
+}
+
+ALL_BIOMES = list(BIOMES.keys())
+
+# Obstacle colors (since we're drawing procedurally)
+OBJECT_COLORS = {
+    # Decorative / special
+    "campfire":      (220, 120,  40),
+    "flower":        (220,  80, 160),
+    "tall_grass":    ( 65, 130,  45),
+    "puddle":        ( 70, 115, 160),
+    # Standard
+    "tree_large":    (30, 80, 25),
+    "tree_med":      (40, 90, 30),
+    "tree_small":    (50, 100, 40),
+    "bush":          (35, 85, 35),
+    "log":           (100, 70, 35),
+    "rock_large":    (100, 95, 90),
+    "rock_med":      (110, 105, 98),
+    "rock_small":    (120, 115, 108),
+    "cactus":        (55, 130, 55),
+    "stalagmite":    (80, 75, 70),
+    "fire_rock":     (140, 45, 20),
+    "skull_pile":    (190, 180, 160),
+    "lava_crack":    (200, 70, 20),
+    "ice_rock":      (160, 190, 215),
+    "snow_drift":    (210, 220, 230),
+    "frozen_tree":   (130, 155, 180),
+    "cloud_puff":    (230, 235, 245),
+    "wind_crystal":  (100, 160, 220),
+}
+
+OBJECT_SIZES = {
+    "campfire": (16, 16), "flower": (8, 8), "tall_grass": (10, 14), "puddle": (22, 12),
+    "tree_large": (36, 36), "tree_med": (28, 28), "tree_small": (20, 20),
+    "bush": (18, 14), "log": (28, 14), "rock_large": (30, 24),
+    "rock_med": (22, 18), "rock_small": (14, 12), "cactus": (14, 28),
+    "stalagmite": (12, 24), "fire_rock": (26, 22), "skull_pile": (20, 14),
+    "lava_crack": (32, 16), "ice_rock": (24, 20), "snow_drift": (30, 18),
+    "frozen_tree": (22, 30), "cloud_puff": (40, 24), "wind_crystal": (12, 20),
+}
+
+# Whether an object blocks movement
+OBJECT_BLOCKING = {
+    "campfire": False, "flower": False, "tall_grass": False, "puddle": False,
+    "tree_large": True, "tree_med": True, "tree_small": True,
+    "bush": False, "log": True, "rock_large": True,
+    "rock_med": True, "rock_small": False, "cactus": True,
+    "stalagmite": True, "fire_rock": True, "skull_pile": False,
+    "lava_crack": False, "ice_rock": True, "snow_drift": False,
+    "frozen_tree": True, "cloud_puff": False, "wind_crystal": True,
+}
