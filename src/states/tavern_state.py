@@ -122,9 +122,21 @@ class TavernState(BaseState):
 
     def on_enter(self, prev_state=None):
         pd = self.game.player_data
+        revived = False
+
+        # Recover broken or old saves that enter the tavern with no survivable state.
+        if pd.get("health", 0) <= 0:
+            pd["health"] = max(1, pd.get("max_health", 100) * 0.3)
+            revived = True
+        if pd.get("hunger", 0) <= 0:
+            pd["hunger"] = max(25, pd.get("max_hunger", 100) * 0.25)
+            revived = True
+
         # Heal/restore slightly when entering tavern after a successful run
         if prev_state == "world":
             self._notify("Run complete! Welcome back.")
+        elif revived:
+            self._notify("Recovered you in the tavern to prevent a dead save.")
 
         self.player = Player(SPAWN_X, SPAWN_Y, pd)
 

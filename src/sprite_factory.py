@@ -7,7 +7,7 @@ import pygame
 from settings import TILE_SIZE, RARITY_COLORS
 
 
-ASSET_ROOT = Path(__file__).resolve().parent.parent / "assets" / "game"
+ASSET_ROOT = Path(__file__).resolve().parent.parent / "assets"
 
 _RAW_IMAGE_CACHE = {}
 _FITTED_IMAGE_CACHE = {}
@@ -31,11 +31,11 @@ WORLD_OBJECT_ASSETS = {
 }
 
 ANIMAL_ASSETS = {
-    "cow": ["animals/cow_brown.png", "animals/cow_white.png"],
-    "sheep": "animals/sheep.png",
-    "deer": "animals/deer.png",
-    "snow_hare": ["animals/snow_hare.png", "animals/snow_hare_alt.png"],
-    "desert_rabbit": "animals/snow_hare_alt.png",
+    "cow": ["animals/cows/cow_brown.png", "animals/cows/cow_white.png"],
+    "sheep": "animals/sheep/sheep.png",
+    "deer": "animals/deer/deer.png",
+    "snow_hare": ["animals/rabbits/snow_hare.png", "animals/rabbits/snow_hare_alt.png"],
+    "desert_rabbit": "animals/rabbits/snow_hare_alt.png",
 }
 
 ITEM_ASSETS = {
@@ -92,6 +92,37 @@ STATIC_ASSETS = {
     "chest_opened": "world/interactive/opened_loot_chest.png",
     "campfire": "world/interactive/campfire.png",
     "death_pile": "world/hellscape/bone_pile.png",
+}
+
+WEAPON_ASSET_BASES = {
+    "dagger": "weapons/light/dagger/dagger",
+    "short_sword": "weapons/light/mini_sword/mini_sword",
+    "sickle": "weapons/light/sickle/sickle",
+    "rapier": "weapons/light/rapier/rapier",
+    "twin_blades": "weapons/light/twinblades/twinblades",
+    "sword": "weapons/balanced/sword/sword",
+    "hatchet": "weapons/balanced/hatchet/hatchet",
+    "broadsword": "weapons/balanced/broadsword/broadsword",
+    "scimitar": "weapons/balanced/scimitar/scimitar",
+    "war_sword": "weapons/balanced/war_sword/war_sword",
+    "club": "weapons/heavy/club/club",
+    "battle_axe": "weapons/heavy/battle_axe/battle_axe",
+    "war_hammer": "weapons/heavy/war_hammer/war_hammer",
+    "great_sword": "weapons/heavy/greatsword/greatsword",
+    "executioner": "weapons/heavy/executioner_axe/executioner_axe",
+}
+
+WEAPON_BOSS_ASSETS = {
+    "warden_blade": "weapons/boss/warden_blade/warden_blade.png",
+    "hellborn_edge": "weapons/boss/hellborn_edge/hellborn_edge.png",
+}
+
+WEAPON_MATERIAL_BY_TIER = {
+    0: "wood",
+    1: "iron",
+    2: "stone",
+    3: "diamond",
+    4: "diamond",
 }
 
 
@@ -171,6 +202,9 @@ def _resolve_item_icon(item):
     direct = ITEM_ASSETS.get(item.id)
     if direct:
         return direct
+    weapon_asset = _resolve_weapon_icon(item)
+    if weapon_asset:
+        return weapon_asset
     if item.itype == "armor":
         if item.slot == "head":
             if item.tier >= 4:
@@ -187,6 +221,16 @@ def _resolve_item_icon(item):
     if item.itype == "boss" and item.slot == "chest":
         return ITEM_ASSETS["warden_plate"]
     return None
+
+
+def _resolve_weapon_icon(item):
+    if item.id in WEAPON_BOSS_ASSETS:
+        return WEAPON_BOSS_ASSETS[item.id]
+    base = WEAPON_ASSET_BASES.get(item.id)
+    if base is None:
+        return None
+    material = WEAPON_MATERIAL_BY_TIER.get(min(item.tier, 4), "diamond")
+    return f"{base}_{material}.png"
 
 
 # Terrain tiles

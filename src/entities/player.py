@@ -90,7 +90,9 @@ class Player(pygame.sprite.Sprite):
         # Starvation / regen
         if self.hunger <= 0:
             self.hunger = 0
-            self.health -= STARVATION_DMG * dt
+            # The tavern is the safe hub; starvation should not hard-lock the save there.
+            if not in_tavern:
+                self.health -= STARVATION_DMG * dt
         elif self.hunger >= HEALTH_REGEN_THRESHOLD:
             self.health = min(self.data["max_health"],
                               self.health + HEALTH_REGEN_RATE * dt)
