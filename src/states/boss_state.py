@@ -14,7 +14,7 @@ from src.camera import Camera
 from src.ui.hud import HUD
 from src.ui.inventory_ui import InventoryUI
 from src.systems.loot_tables import make_boss_loot
-from src.save_system import save_player
+from src.save_system import save_player, sanitize_player_data
 
 
 # Boss arena dimensions
@@ -218,6 +218,7 @@ class BossState(BaseState):
 
     def on_enter(self, prev_state=None):
         pd = self.game.player_data
+        sanitize_player_data(pd)
         bdata = BossData.BOSS1 if self.boss_id == 1 else BossData.BOSS2
 
         # Build arena
@@ -415,8 +416,13 @@ class BossState(BaseState):
 
         # Auto-collect remaining items
         inv = pd["inventory"]
+        storage = pd["storage"]
         for ld in self.loot_drops:
-            inv.add_item(ld.item)
+            if inv.add_item(ld.item):
+                continue
+            if storage.add_item(ld.item):
+                continue
+            pd["coins"] += ld.item.sell_value
         for cd in self.coin_drops:
             pd["coins"] += cd.amount
 

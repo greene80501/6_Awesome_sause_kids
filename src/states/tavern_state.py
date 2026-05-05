@@ -14,7 +14,7 @@ from src.ui.shop_ui import ShopUI
 from src.ui.storage_ui import StorageUI
 from src.ui.portal_ui import PortalUI
 from src.systems.economy import build_shop_stock
-from src.save_system import save_player, save_world
+from src.save_system import save_player, save_world, sanitize_player_data, load_world
 
 
 # ── Tavern layout constants ──
@@ -122,6 +122,7 @@ class TavernState(BaseState):
 
     def on_enter(self, prev_state=None):
         pd = self.game.player_data
+        sanitize_player_data(pd)
         revived = False
 
         # Recover broken or old saves that enter the tavern with no survivable state.
@@ -222,7 +223,7 @@ class TavernState(BaseState):
         # Portal
         ppx, ppy = self.portal_pos
         if math.hypot(px - ppx, py - ppy) < 80:
-            saved = self.game.player_data.get("saved_world")
+            saved = load_world() or self.game.player_data.get("saved_world")
             self.portal_ui.open(
                 has_saved=saved is not None,
                 saved_world=saved,

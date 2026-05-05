@@ -3,7 +3,8 @@ import pygame
 import sys
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, TITLE
 from src.save_system import (load_player, new_player_data, load_world,
-                               save_player, save_world, delete_world)
+                               save_player, save_world, delete_world,
+                               sanitize_player_data)
 from src.world_gen.generator import generate_world, WorldData
 
 
@@ -84,6 +85,7 @@ class Game:
                 saved = load_world()
                 if saved:
                     self.player_data["saved_world"] = saved
+                sanitize_player_data(self.player_data)
             return "tavern"
 
         if name == "world_new":
@@ -102,7 +104,7 @@ class Game:
 
         if name == "world_revisit":
             pd   = self.player_data
-            data = pd.get("saved_world") or load_world()
+            data = load_world() or pd.get("saved_world")
             if data:
                 wd = WorldData.from_dict(data)
                 ws = self._get_state("world")
@@ -113,7 +115,7 @@ class Game:
         if name == "death_return":
             # Player died — re-enter same world for recovery
             pd   = self.player_data
-            data = pd.get("saved_world") or load_world()
+            data = load_world() or pd.get("saved_world")
             if data:
                 wd = WorldData.from_dict(data)
                 ws = self._get_state("world")

@@ -164,12 +164,13 @@ class Inventory:
     def from_dict(cls, d):
         from src.systems.item import Item
         inv = cls()
-        for i, sd in enumerate(d["slots"]):
+        for i, sd in enumerate(d.get("slots", [])[:len(inv.slots)]):
             inv.slots[i] = Item.from_dict(sd) if sd else None
-        for i, sd in enumerate(d["hotbar"]):
+        for i, sd in enumerate(d.get("hotbar", [])[:len(inv.hotbar)]):
             inv.hotbar[i] = Item.from_dict(sd) if sd else None
-        for k, sd in d["equip"].items():
-            inv.equip[k] = Item.from_dict(sd) if sd else None
+        for k, sd in d.get("equip", {}).items():
+            if k in inv.equip:
+                inv.equip[k] = Item.from_dict(sd) if sd else None
         return inv
 
 

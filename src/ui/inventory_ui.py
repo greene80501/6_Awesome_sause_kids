@@ -74,6 +74,8 @@ class InventoryUI:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             hit = self._hit_test(event.pos)
             if hit is None:
+                self.visible = False
+                self.selected = None
                 return None
 
             if self.selected is None:

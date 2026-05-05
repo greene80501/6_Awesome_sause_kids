@@ -115,7 +115,10 @@ class Player(pygame.sprite.Sprite):
 
         # Death check
         if self.health <= 0:
-            self.dead = True
+            if in_tavern:
+                self.health = 1
+            else:
+                self.dead = True
 
     def _move(self, dt, keys, world_rect, collision_rects):
         dx, dy = 0, 0
@@ -145,7 +148,7 @@ class Player(pygame.sprite.Sprite):
                 if hx_rect.colliderect(cr):
                     new_x = self.pos.x
                 # Try vertical only
-                vy_rect = pygame.Rect(new_x - half, new_y - half, self.size, self.size)
+                vy_rect = pygame.Rect(self.pos.x - half, new_y - half, self.size, self.size)
                 if vy_rect.colliderect(cr):
                     new_y = self.pos.y
                 break

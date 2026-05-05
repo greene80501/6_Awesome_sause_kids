@@ -71,6 +71,7 @@ class WorldData:
         self.dropped_items = []
         self.death_pile    = None
         self.revisitable   = True
+        self.completion_awarded = False
 
     def to_dict(self):
         return {
@@ -90,6 +91,7 @@ class WorldData:
             "dropped_items": self.dropped_items,
             "death_pile": self.death_pile,
             "revisitable": self.revisitable,
+            "completion_awarded": self.completion_awarded,
         }
 
     @classmethod
@@ -99,6 +101,10 @@ class WorldData:
             setattr(w, k, v)
         if not hasattr(w, "pois"):   # backwards compat with old saves
             w.pois = []
+        if not hasattr(w, "completion_awarded"):
+            w.completion_awarded = False
+        if w.objective and w.objective.get("type") == "carry_item":
+            w.objective = {"type": "clear_world", "target_id": None, "done": w.objective.get("done", False)}
         return w
 
 
@@ -236,7 +242,7 @@ def generate_world(worlds_cleared=0, boss_kills=0, biome=None):
 
     # ── Objective ──
     if wd.world_type == "objective":
-        obj_type = rng.choice(["kill_elite", "clear_world", "carry_item"])
+        obj_type = rng.choice(["kill_elite", "clear_world"])
         wd.objective = {"type": obj_type, "target_id": None, "done": False}
         if obj_type == "kill_elite":
             for sp in wd.enemy_spawns:

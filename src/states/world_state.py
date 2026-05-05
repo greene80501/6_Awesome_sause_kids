@@ -22,7 +22,7 @@ from src.systems.loot_tables import (roll_enemy_drop, roll_enemy_coins,
 from src.data.enemies_data import ENEMY_TYPES, ANIMAL_TYPES
 from src.world_gen.generator import get_collision_rects, draw_world_base
 from src.world_gen.biomes import BIOMES
-from src.save_system import save_player, save_world, delete_world
+from src.save_system import save_player, save_world, delete_world, sanitize_player_data
 
 
 PICKUP_RANGE  = 48
@@ -79,6 +79,7 @@ class WorldState(BaseState):
     # ─────────────────────────────────────────────
     def on_enter(self, prev_state=None):
         pd = self.game.player_data
+        sanitize_player_data(pd)
         wd = self.world_data
         if wd is None:
             self.next = "tavern"
@@ -153,6 +154,7 @@ class WorldState(BaseState):
         self._death_timer  = 0.0
         self._death_fade   = 0.0
         self.objective_done = wd.objective.get("done", False) if wd.objective else False
+        self.obj_reward_shown = bool(getattr(wd, "completion_awarded", False))
 
     def on_exit(self):
         self._save_world_state()
@@ -486,15 +488,28 @@ class WorldState(BaseState):
 
         # Death pile
         if self._near_death_pile and self.death_pile:
-            items, coins = self.death_pile.loot()
             pd = self.game.player_data
-            pd["coins"] += coins
             added = 0
-            for item in items:
+            if self.death_pile.coins:
+                pd["coins"] += self.death_pile.coins
+                self.death_pile.coins = 0
+
+            remaining = []
+            for item in self.death_pile.items:
                 if pd["inventory"].add_item(item):
                     added += 1
-            self._notify(f"Recovered {added} items and {coins} coins!")
-            self.death_pile = None
+                else:
+                    remaining.append(item)
+            self.death_pile.items = remaining
+
+            if not self.death_pile.items and self.death_pile.coins == 0:
+                self.death_pile.expired = True
+                self.death_pile = None
+                self.world_data.death_pile = None
+                self._notify(f"Recovered {added} items from the death pile.")
+            else:
+                self.world_data.death_pile = self.death_pile.to_dict()
+                self._notify(f"Recovered {added} items. Make room for the rest.")
             return
 
         # Loot node (chest)
@@ -534,6 +549,11 @@ class WorldState(BaseState):
         # Collect objective reward if done
         if self.objective_done and not self.obj_reward_shown:
             self._give_objective_reward()
+            pd = self.game.player_data
+            wd = self.world_data
+            pd["worlds_cleared"] = pd.get("worlds_cleared", 0) + 1
+            pd["highest_tier"] = max(pd.get("highest_tier", 0), wd.tier)
+            wd.completion_awarded = True
         self._save_world_state()
         save_player(self.game.player_data)
         self.next = "tavern"
@@ -602,7 +622,11 @@ class WorldState(BaseState):
         wd.dropped_items = [ld.to_dict() for ld in self.loot_drops]
         if self.death_pile and not self.death_pile.expired:
             wd.death_pile = self.death_pile.to_dict()
-        save_world(wd.to_dict())
+        else:
+            wd.death_pile = None
+        data = wd.to_dict()
+        self.game.player_data["saved_world"] = data
+        save_world(data)
 
     def _notify(self, text):
         self.notif_text  = text
